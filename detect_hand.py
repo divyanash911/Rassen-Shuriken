@@ -72,7 +72,7 @@ if 1:
 
     while True:
         ret,frame = cap.read()
-        # print(type(frame))
+        
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
