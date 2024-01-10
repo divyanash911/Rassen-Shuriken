@@ -1,16 +1,12 @@
 import mediapipe as mp 
-import cv2 as cv
+import cv2
 import numpy as np
 import time
 from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
-BaseOptions = mp.tasks.BaseOptions
-HandLandmarker = mp.tasks.vision.HandLandmarker
-HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
-HandLandmarkerResult = mp.tasks.vision.HandLandmarkerResult
-VisionRunningMode = mp.tasks.vision.RunningMode
-
-res_obj = None
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
+mp_hands = mp.solutions.hands
 
 MARGIN = 10  # pixels
 FONT_SIZE = 1
@@ -50,57 +46,44 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
     # Draw handedness (left or right hand) on the image.
     cv.putText(annotated_image, f"{handedness[0].category_name}",
-                (text_x, text_y), cv.FONT_HERSHEY_DUPLEX,
-                FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv.LINE_AA)
+                (text_x, text_y), cv2.FONT_HERSHEY_DUPLEX,
+                FONT_SIZE, HANDEDNESS_TEXT_COLOR, FONT_THICKNESS, cv2.LINE_AA)
 
   return annotated_image
 
-def print_result(result: HandLandmarkerResult, output_image: mp.Image, timestamp_ms: int):
-    print(result)
-    global res_obj
-    res_obj = result
-    print('hand landmarker result: {}'.format(result))
 
 
+cap = cv2.VideoCapture(0)
+with mp_hands.Hands(
+    model_complexity=0,
+    min_detection_confidence=0.5,
+    min_tracking_confidence=0.5) as hands:
+  while cap.isOpened():
+    success, image = cap.read()
+    if not success:
+      print("Ignoring empty camera frame.")
+      # If loading a video, use 'break' instead of 'continue'.
+      continue
 
-if 1:
-    cap = cv.VideoCapture(0)
+    # To improve performance, optionally mark the image as not writeable to
+    # pass by reference.
+    image.flags.writeable = False
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    results = hands.process(image)
 
-    if not cap.isOpened():
-        print("Cannot open camera")
-        exit()
-
-    while True:
-        ret,frame = cap.read()
-        
-        if not ret:
-            print("Can't receive frame (stream end?). Exiting ...")
-            break
-            # Frame captured is stored in the frame variable which can be use for further image processing
-        
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-        
-        options = HandLandmarkerOptions(
-                  base_options=BaseOptions(model_asset_path='./hand_landmarker.task'),
-                  running_mode=VisionRunningMode.LIVE_STREAM,
-                  result_callback=print_result)
-        
-        with HandLandmarker.create_from_options(options) as landmarker:
-          result_img =landmarker.detect_async(mp_image,mp.Timestamp.from_seconds(time.time()).value)
-
-        
-        
-
-        if res_obj is not None:
-            print(res_obj)
-            annotated_image = draw_landmarks_on_image(frame, res_obj)
-            cv.imshow('frame',annotated_image)
-      
-                
-        if cv.waitKey(1) == ord('q'):
-            break
-        
-        
-    cap.release()
-    cv.destroyAllWindows()
-
+    # Draw the hand annotations on the image.
+    image.flags.writeable = True
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    if results.multi_hand_landmarks:
+      for hand_landmarks in results.multi_hand_landmarks:
+        mp_drawing.draw_landmarks(
+            image,
+            hand_landmarks,
+            mp_hands.HAND_CONNECTIONS,
+            mp_drawing_styles.get_default_hand_landmarks_style(),
+            mp_drawing_styles.get_default_hand_connections_style())
+    # Flip the image horizontally for a selfie-view display.
+    cv2.imshow('MediaPipe Hands', cv2.flip(image, 1))
+    if cv2.waitKey(5) & 0xFF == 27:
+      break
+cap.release()
