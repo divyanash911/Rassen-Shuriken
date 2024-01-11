@@ -40,7 +40,6 @@ with mp_hands.Hands(
             mp_drawing_styles.get_default_hand_landmarks_style(),
             mp_drawing_styles.get_default_hand_connections_style())
 
-    # print(type(results.multi_hand_landmarks))
     
     preprocess_data(results)
 

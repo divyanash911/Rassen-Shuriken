@@ -7,4 +7,11 @@ mp_hands = mp.solutions.hands
 
 def preprocess_data(result):
 
+    if result is None:
+        return
+    
     print(result.multi_hand_landmarks)
+
+    
+
+
