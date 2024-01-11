@@ -23,9 +23,9 @@ with mp_hands.Hands(
     min_detection_confidence=0.8) as hands:
   count = 0
   for idx, file in enumerate(IMAGE_FILES):
-    # Read an image, flip it around y-axis for correct handedness output (see
-    # above).
-    # print(file)
+    label = file.removeprefix('./dataset/train/')
+    label = label[:label.find('/'):1]
+    # print(label)
     image = cv2.flip(cv2.imread(file), 1)
 
     results = hands.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
@@ -77,7 +77,7 @@ with mp_hands.Hands(
         if len(row_data) < 42*3:
           while len(row_data) < 42 * 3:
                 row_data.append(0)
-        
+        row_data.append(label)
         # print(len(row_data))
         writer.writerow(row_data)
         
