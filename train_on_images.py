@@ -20,7 +20,9 @@ csv_path = "data.csv"
 with mp_hands.Hands(
     static_image_mode=True,
     max_num_hands=2,
-    min_detection_confidence=0.8) as hands:
+    min_detection_confidence=0.4,
+    min_tracking_confidence=0.4,
+    model_selection=1) as hands:
   count = 0
   for idx, file in enumerate(IMAGE_FILES):
     label = file.removeprefix('./dataset/train/')
