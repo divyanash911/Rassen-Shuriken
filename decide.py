@@ -6,7 +6,7 @@ def blackbox_function(title, body, author):
     Replace this with the actual logic or model.
     """
     
-    return True
+    return False
 
 def main():
     issue_title = os.getenv('ISSUE_TITLE', '')
