@@ -8,29 +8,39 @@ on:
 jobs:
   handle-issue:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Log new issue details
-        run: |
-          echo "New issue created by: ${{ github.event.issue.user.login }}"
-          echo "Issue title: ${{ github.event.issue.title }}"
-          echo "Issue body: ${{ github.event.issue.body }}"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-      - name: Add a label to the issue
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Decide if Issue is Inappropriate
+        id: check_inappropriate
+        run: |
+          python decide.py > result.txt
+          cat result.txt
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+
+      - name: Read Decision Output
+        id: read_decision
+        run: |
+          result=$(cat result.txt)
+          echo "::set-output name=is_inappropriate::$result"
+
+      - name: Label Inappropriate Issues
+        if: steps.read_decision.outputs.is_inappropriate == 'true'
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-          labels: 'Inappropriate'
-
-      - name: Notify team via comment
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.issue.number,
-              body: "Thank you for creating this issue! The team will review it shortly. cc: @team"
-            })
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: 'inappropriate'
