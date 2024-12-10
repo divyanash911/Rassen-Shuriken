@@ -1,6 +1,8 @@
 import requests
 from transformers import pipeline
+from dotenv import load_dotenv
 
+load_dotenv()
 def get_labels(infos):
     
     """Replace with actual business logic
@@ -29,7 +31,7 @@ def get_labels(infos):
     return score,incorrect
 
 # Configuration
-TOKEN = "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"
+TOKEN = os.getenv("TOKEN")
 OWNER = "virtual-labs"
 REPO = "bugs-virtual-labs"
 LABEL = "Inappropriate"
