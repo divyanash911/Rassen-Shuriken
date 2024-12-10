@@ -2,7 +2,7 @@ name: Periodic Workflow
 
 on:
   schedule:
-    - cron: '1 * * * *'
+    - cron: '* * * * *'  # Every minute
 
 jobs:
   run-script:
@@ -25,4 +25,3 @@ jobs:
         run: |
           python decide2.py > result.txt
           cat result.txt
-
