@@ -1,13 +1,18 @@
 import requests
+from dotenv import load_dotenv
 
-TOKEN = "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"
+load_dotenv()
+
+KEY = os.getenv('KEY')
+
+TOKEN = os.getenv('TOKEN')
 OWNER = "virtual-labs"
 REPO = "bugs-virtual-labs"
 
 import os
 import google.generativeai as genai
 
-genai.configure(api_key='AIzaSyAstDCNB7JplgZL0M7aFDxGLf8HGEs3MNU')
+genai.configure(api_key=KEY)
 
 
 

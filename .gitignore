@@ -1,4 +1,5 @@
 annotated_image
 dataset
 data.csv
+.env
 __pycache__
